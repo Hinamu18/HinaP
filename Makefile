@@ -1,2 +1,2 @@
 all:
-	gcc main.c dir.c TUI.c -lncursesw -ldl -lm -lpthread -o HinaP
+	gcc src/main.c src/dir.c src/TUI.c -lncursesw -ldl -lm -lpthread -o HinaP
