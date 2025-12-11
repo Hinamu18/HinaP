@@ -7,6 +7,19 @@
 
 char *the_dir_path = NULL;
 float volume = 0.5f;
+bool audio_pause = false;
+ma_device device;
+
+double get_audio_length(ma_decoder* decoder){
+  
+  ma_uint64 frames; 
+  ma_decoder_get_length_in_pcm_frames(decoder,&frames); 
+  
+  unsigned int sample_rate;
+  sample_rate = decoder->outputSampleRate;
+
+  return (double)frames/((double)(sample_rate));
+}
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
@@ -78,7 +91,6 @@ int main(int argc, char *argv[])
   deviceConfig.dataCallback      = data_callback;
   deviceConfig.pUserData         = &decoder;
 
-  ma_device device;
   if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
     printf("Failed to open playback device.\n");
     ma_decoder_uninit(&decoder);
@@ -92,7 +104,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  int audio = audio_ui(final_audio_path);
+  int audio = audio_ui(final_audio_path,&decoder);
   while (true){
     if (audio == -1) {
       break;
@@ -103,9 +115,7 @@ int main(int argc, char *argv[])
 
       char* selected_file = draw_files_menu();
 
-      if (selected_file == NULL) {
-        break;
-      }
+      if (selected_file == NULL) break;
 
       snprintf(full_path_buffer, sizeof(full_path_buffer), "%s%s", the_dir_path, selected_file);
       final_audio_path = full_path_buffer;
@@ -114,8 +124,7 @@ int main(int argc, char *argv[])
         printf("Could not load audio file: %s\n", final_audio_path);
         return -1;
       }
-      
-      audio = audio_ui(final_audio_path);
+      audio = audio_ui(final_audio_path,&decoder);
     }
   }
 
